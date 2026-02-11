@@ -70,8 +70,6 @@ fn main() -> Result<()> {
                 (None, None) => names::Generator::default().next().unwrap(),
             };
 
-            println!("{feature_name}");
-
             // Determine the worktree path
             let worktree_path = if let Some(dir) = worktrees_dir {
                 std::fs::create_dir_all(&dir)?;

@@ -2,17 +2,16 @@ use eyre::{Result, eyre};
 use std::process::Command;
 use std::{os::unix::process::CommandExt as _, path::PathBuf};
 
-pub fn run(
-    query: Option<String>,
-    feature_name: String,
-    setup_command: Option<String>,
-    worktree_path: PathBuf,
-    keep_worktree: bool,
+const SPAWN_CLAUDE_SCRIPT: &str = include_str!("spawn_claude.sh");
+const SPAWN_CLAUDE_KEEP_SCRIPT: &str = include_str!("spawn_claude_keep.sh");
+
+fn setup_worktree(
+    feature_name: &str,
+    worktree_path: &PathBuf,
+    setup_command: Option<&String>,
 ) -> Result<()> {
     // Capture uncommitted changes from the main directory
-    let diff_output = Command::new("git")
-        .args(["diff"])
-        .output()?;
+    let diff_output = Command::new("git").args(["diff"]).output()?;
 
     let uncommitted_changes = String::from_utf8_lossy(&diff_output.stdout).to_string();
 
@@ -60,39 +59,32 @@ pub fn run(
         }
     }
 
-    // Create a shell script that sets up a trap to cleanup the worktree
-    let cleanup_script = if keep_worktree {
-        // No cleanup needed
-        format!(
-            r#"#!/bin/sh
-cd "{}"
-claude {}
-"#,
-            worktree_path.display(),
-            query.as_deref().unwrap_or("")
-        )
+    Ok(())
+}
+
+pub fn run(
+    query: Option<String>,
+    feature_name: String,
+    setup_command: Option<String>,
+    worktree_path: PathBuf,
+    keep_worktree: bool,
+) -> Result<()> {
+    setup_worktree(&feature_name, &worktree_path, setup_command.as_ref())?;
+    println!("Created worktree at: {}", worktree_path.display());
+
+    // Prepare environment variables and script
+    let script = if keep_worktree {
+        SPAWN_CLAUDE_KEEP_SCRIPT
     } else {
-        // Add trap to remove worktree on exit
-        format!(
-            r#"#!/bin/sh
-cleanup() {{
-    cd -
-    git worktree remove "{}" --force
-    echo "Removed worktree: {}"
-}}
-trap cleanup EXIT
-cd "{}"
-claude {}
-"#,
-            worktree_path.display(),
-            worktree_path.display(),
-            worktree_path.display(),
-            query.as_deref().unwrap_or("")
-        )
+        SPAWN_CLAUDE_SCRIPT
     };
 
+    let script_with_vars = script
+        .replace("$WORKTREE_PATH", &worktree_path.display().to_string())
+        .replace("$QUERY", query.as_deref().unwrap_or(""));
+
     // Execute the shell script
-    let err = Command::new("sh").arg("-c").arg(&cleanup_script).exec();
+    let err = Command::new("sh").arg("-c").arg(&script_with_vars).exec();
     // Note: if "exec" works, the Rust program will *never* continue beyond this point.
     Err(err.into())
 }
