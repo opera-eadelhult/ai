@@ -46,6 +46,8 @@ pub fn run(query: String) -> Result<()> {
     if let Some(template) = TemplateParameters::parse(&bash_command) {
         let values = collect_form_inputs(template.parameters())?;
         bash_command = template.apply_parameter_values(values);
+        // Print the command with the template parameters replaced to make it easier to copy for later use
+        println!("\n{bash_command}");
     }
 
     process::Command::new("bash")
@@ -95,8 +97,12 @@ fn build_claude_command(query: &str) -> process::Command {
     cmd.arg(format!(r#"
 You are tasked with suggesting a one-off bash command/script.
 Only respond in accordance to this JSON Schema, and wrap it in a markdown code block i.e. "```json".
+
 If the information you where given is not sufficient you may use template parameters using angle brackets,
 for example "git switch <branch-name>".
+
+You don't have to leave a comment, and if you do. Only include relevant remarks, there is no
+need to repeat the users query.
 
 Schema
 ```
