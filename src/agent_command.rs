@@ -1,9 +1,27 @@
 use eyre::{Result, eyre};
 use std::process::Command;
 use std::{os::unix::process::CommandExt as _, path::PathBuf};
+use std::{fs, path::Path};
 
 const SPAWN_CLAUDE_SCRIPT: &str = include_str!("spawn_claude.sh");
 const SPAWN_CLAUDE_KEEP_SCRIPT: &str = include_str!("spawn_claude_keep.sh");
+
+fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
+    fs::create_dir_all(dst)?;
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+
+        if file_type.is_dir() {
+            copy_dir_recursive(&src_path, &dst_path)?;
+        } else {
+            fs::copy(&src_path, &dst_path)?;
+        }
+    }
+    Ok(())
+}
 
 fn setup_worktree(
     feature_name: &str,
@@ -44,6 +62,13 @@ fn setup_worktree(
         if !apply_status.success() {
             return Err(eyre!("Failed to apply uncommitted changes to worktree"));
         }
+    }
+
+    // Copy .claude directory if it exists
+    let claude_dir = Path::new(".claude");
+    if claude_dir.exists() && claude_dir.is_dir() {
+        let target_claude_dir = worktree_path.join(".claude");
+        copy_dir_recursive(&claude_dir, &target_claude_dir)?;
     }
 
     // Run setup command if provided
