@@ -4,6 +4,7 @@ use clap::{Parser, Subcommand};
 use dialoguer::Input;
 use eyre::Result;
 
+mod ask_command;
 mod do_command;
 mod template_parameters;
 mod terminal_utils;
@@ -19,10 +20,10 @@ struct Args {
 enum SubCommand {
     /// Spawn an AI agent in a separate git worktree
     Agent,
-    /// Suggest a one-off bash command.
+    /// Suggest a one-off bash command
     Do { query: Option<String> },
     /// Ask a question
-    Ask,
+    Ask { query: Option<String> },
 }
 
 fn main() -> Result<()> {
@@ -39,9 +40,16 @@ fn main() -> Result<()> {
             } else {
                 Input::new().with_prompt("Query").interact_text()?
             };
-            do_command::run(query)?
+            do_command::run(&query)?
         }
-        SubCommand::Ask => todo!(),
+        SubCommand::Ask { query } => {
+            let query = if let Some(query) = query {
+                query
+            } else {
+                Input::new().with_prompt("Query").interact_text()?
+            };
+            ask_command::run(&query)?
+        }
     }
 
     Ok(())

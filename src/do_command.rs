@@ -3,10 +3,10 @@ use eyre::Context;
 use eyre::Result;
 use schemars::{JsonSchema, schema_for};
 use serde::Deserialize;
-use spinoff::{Color, Spinner, spinners};
 use std::cell::LazyCell;
 use std::process;
 
+use crate::terminal_utils::thinking_spinner;
 use crate::{
     template_parameters::TemplateParameters,
     terminal_utils::{collect_form_inputs, highlight_bash},
@@ -19,13 +19,13 @@ struct DoOutput {
     comment: Option<String>,
 }
 
-pub fn run(query: String) -> Result<()> {
-    let mut spinner = Spinner::new(spinners::Dots, "Thinking ...", Color::Blue);
+pub fn run(query: &str) -> Result<()> {
+    let mut spinner = thinking_spinner();
 
     let DoOutput {
         mut bash_command,
         comment,
-    } = run_claude(&query)?;
+    } = run_claude(query)?;
 
     spinner.success("Done!");
 
@@ -94,6 +94,7 @@ fn build_claude_command(query: &str) -> process::Command {
     // FIXME: For some reason the claude CLI just crashes when I provide a schema,
     // for now, I'll just give the schema in the prompt.
     //cmd.arg(format!("--json-schema='{output_schema}'"));
+    // TODO: There is also a --append-system-prompt. But when testing this I got worse result then just including everything in the user message.
     cmd.arg(format!(r#"
 You are tasked with suggesting a one-off bash command/script.
 Only respond in accordance to this JSON Schema, and wrap it in a markdown code block i.e. "```json".
