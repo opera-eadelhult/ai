@@ -14,10 +14,10 @@ cleanup() {
 
     # Check if there are any differences from the original branch
     if git diff --quiet "$ORIGINAL_BRANCH"..."$BRANCH_NAME"; then
-        echo "No changes made. Branch $BRANCH_NAME was deleted."
+        echo "No changes made. Branch $BRANCH_NAME and directory $WORKTREE_PATH were deleted."
         git branch -D "$BRANCH_NAME"
     else
-        echo "Worktree at $WORKTREE_PATH was removed"
+        echo "Directory $WORKTREE_PATH was removed"
         echo "To review the work: 'git switch $BRANCH_NAME'"
     fi
 }

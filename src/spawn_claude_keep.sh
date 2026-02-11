@@ -5,9 +5,8 @@ cleanup() {
     git add -A
     git diff --cached --quiet || git commit -m "WIP"
 
-    echo "Worktree at $WORKTREE_PATH was kept"
-    echo "To review the work: 'git switch $BRANCH_NAME'"
-    cd "$ORIGINAL_DIR"
+    echo "Directory $WORKTREE_PATH was kept"
+    echo "To review the work, explore your current working directory,\nor: 'git switch $BRANCH_NAME'"
 }
 trap cleanup EXIT
 cd "$WORKTREE_PATH"
