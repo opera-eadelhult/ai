@@ -1,5 +1,7 @@
 use std::{cell::LazyCell, collections::HashMap, os::unix::process::CommandExt as _, process};
 
+use arborium::AnsiHighlighter;
+use arborium::theme::builtin;
 use clap::{Parser, Subcommand};
 use dialoguer::{Confirm, Input};
 use eyre::{Context, Result};
@@ -40,7 +42,7 @@ fn main() -> Result<()> {
                 Input::new().with_prompt("Query").interact_text()?
             };
 
-            let mut spinner = Spinner::new(spinners::Dots, "Working ...", Color::Blue);
+            let mut spinner = Spinner::new(spinners::Dots, "Thinking ...", Color::Blue);
             let DoOutput {
                 mut bash_command,
                 short_explanation,
@@ -48,10 +50,11 @@ fn main() -> Result<()> {
 
             spinner.success("Done!");
 
-            let confirmation = Confirm::new()
-                .with_prompt(format!("{short_explanation}\n{bash_command}\n"))
-                .interact()
-                .unwrap();
+            let mut hl = AnsiHighlighter::new(builtin::catppuccin_mocha());
+            let highlighted_bash_command = hl.highlight("bash", &bash_command)?;
+
+            println!("{short_explanation}\n{highlighted_bash_command}\n");
+            let confirmation = Confirm::new().with_prompt("Execute").interact().unwrap();
 
             if confirmation {
                 if let Some(template) = TemplateParameters::parse(&bash_command) {
@@ -59,6 +62,8 @@ fn main() -> Result<()> {
                     bash_command = template.apply_parameter_values(values);
                 }
 
+                // TODO: Would be neat to store previously executed
+                // commands so that we can deterministically call them again
                 process::Command::new("bash")
                     .arg("-c")
                     .arg(bash_command)
@@ -155,7 +160,7 @@ fn build_do_command(query: &str) -> process::Command {
     //cmd.arg(format!("--json-schema='{output_schema}'"));
     cmd.arg(format!(r#"
 You are tasked with suggesting a one-off bash command/script.
-Only respond in accordance to this JSON Schema, and nothing else (don't wrap it in ``` for example).
+Only respond in accordance to this JSON Schema, and don't wrap it in anything else (don't wrap it in ``` for example).
 If the information you where given is not sufficient you may use template parameters using angle brackets,
 for example "git switch <branch-name>".
 
