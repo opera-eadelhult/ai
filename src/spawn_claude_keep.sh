@@ -11,4 +11,5 @@ cleanup() {
 }
 trap cleanup EXIT
 cd "$WORKTREE_PATH"
+BRANCH_NAME="$(git branch --show-current)"
 claude "$QUERY"
