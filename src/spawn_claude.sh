@@ -1,5 +1,6 @@
 #!/bin/sh
 ORIGINAL_DIR="$(pwd)"
+ORIGINAL_BRANCH="$(git branch --show-current)"
 cleanup() {
     # Commit if needed
     git add -A
@@ -9,9 +10,16 @@ cleanup() {
     git worktree remove "$WORKTREE_PATH" --force
     rm -rf "$WORKTREE_PATH"
 
-    echo "Worktree at $WORKTREE_PATH was removed"
-    echo "To review the work: 'git switch $BRANCH_NAME'"
     cd "$ORIGINAL_DIR"
+
+    # Check if there are any differences from the original branch
+    if git diff --quiet "$ORIGINAL_BRANCH"..."$BRANCH_NAME"; then
+        echo "No changes made. Branch $BRANCH_NAME was deleted."
+        git branch -D "$BRANCH_NAME"
+    else
+        echo "Worktree at $WORKTREE_PATH was removed"
+        echo "To review the work: 'git switch $BRANCH_NAME'"
+    fi
 }
 trap cleanup EXIT
 cd "$WORKTREE_PATH"
