@@ -72,7 +72,30 @@ fn main() -> Result<()> {
 
             println!("{feature_name}");
 
-            agent_command::run(query, feature_name);
+            // Determine the worktree path
+            let worktree_path = if let Some(dir) = worktrees_dir {
+                std::fs::create_dir_all(&dir)?;
+                dir.join(&feature_name)
+            } else {
+                // Use a temporary directory namespaced by current directory
+                let cwd = std::env::current_dir()?;
+                let cwd_name = cwd
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("unknown");
+                std::env::temp_dir()
+                    .join("ai-worktrees")
+                    .join(cwd_name)
+                    .join(&feature_name)
+            };
+
+            agent_command::run(
+                query,
+                feature_name,
+                setup_command,
+                worktree_path,
+                keep_worktree.unwrap_or(false),
+            )?;
         }
         SubCommand::Do { query } => {
             let query = if let Some(query) = query {
