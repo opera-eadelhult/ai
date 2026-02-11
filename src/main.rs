@@ -12,7 +12,13 @@ mod template_parameters;
 mod terminal_utils;
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(
+    name = "AI",
+    version,
+    author,
+    about = "An opinionated wrapper around Claude Code to manage worktrees and execute scripts",
+    long_about = None
+)]
 struct Args {
     #[command(subcommand)]
     command: SubCommand,
