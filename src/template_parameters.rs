@@ -9,10 +9,11 @@ pub struct TemplateParameters<'a> {
     captures: Vec<Captures<'a>>,
 }
 
-const PARAMETER_TEMPLATE: LazyCell<Regex> = LazyCell::new(|| Regex::new(r"<([\w-]+)>").unwrap());
-
 impl<'a> TemplateParameters<'a> {
     pub fn parse(bash_command: &'a str) -> Option<Self> {
+        const PARAMETER_TEMPLATE: LazyCell<Regex> =
+            LazyCell::new(|| Regex::new(r"<([\w-]+)>").unwrap());
+
         let captures: Vec<_> = PARAMETER_TEMPLATE.captures_iter(bash_command).collect();
         if captures.len() > 0 {
             Some(Self {
