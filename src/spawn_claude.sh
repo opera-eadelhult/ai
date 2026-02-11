@@ -1,13 +1,17 @@
 #!/bin/sh
 ORIGINAL_DIR="$(pwd)"
 cleanup() {
-    cd "$WORKTREE_PATH"
+    # Commit if needed
     git add -A
     git diff --cached --quiet || git commit -m "WIP"
-    cd "$ORIGINAL_DIR"
+
+    # Cleanup the worktree
     git worktree remove "$WORKTREE_PATH" --force
     rm -rf "$WORKTREE_PATH"
-    echo "Removed worktree: $WORKTREE_PATH"
+
+    echo "Worktree at $WORKTREE_PATH was removed"
+    echo "To review the work: 'git switch $BRANCH_NAME'"
+    cd "$ORIGINAL_DIR"
 }
 trap cleanup EXIT
 cd "$WORKTREE_PATH"
