@@ -1,9 +1,12 @@
 # `ai`
+My tiny opinionated wrapper around Claude Code to execute commands and manage git worktrees.
 
+
+## Setup
 Assuming you have a [Rust toolchain](https://rust-lang.org/tools/install/) installed, just run:
 
 ```bash
-cargo install --locked --path .
+cargo install --locked --git https://github.com/opera-eadelhult/ai.git
 ```
 ```bash
 ai help
