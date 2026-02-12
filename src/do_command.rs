@@ -90,7 +90,8 @@ fn build_claude_command(query: &str) -> process::Command {
     let mut cmd = process::Command::new("claude");
     cmd.arg("--print");
     cmd.arg("--no-session-persistence");
-    cmd.arg("--tools=Read,Grep");
+    cmd.arg("--tools=Read,Grep,Glob,WebFetch,WebSearch");
+    cmd.arg("--allowedTools=Read,Grep,Glob,WebFetch,WebSearch");
     // FIXME: For some reason the claude CLI just crashes when I provide a schema,
     // for now, I'll just give the schema in the prompt.
     //cmd.arg(format!("--json-schema='{output_schema}'"));

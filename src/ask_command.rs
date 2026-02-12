@@ -18,7 +18,8 @@ fn build_claude_command(query: &str) -> process::Command {
     let mut cmd = process::Command::new("claude");
     cmd.arg("--print");
     cmd.arg("--no-session-persistence");
-    cmd.arg("--tools=Read,Grep");
+    cmd.arg("--tools=Read,Grep,Glob,WebFetch,WebSearch");
+    cmd.arg("--allowedTools=Read,Grep,Glob,WebFetch,WebSearch");
     cmd.arg(format!(r#"
 You are tasked with responding to a user query. Answer succinctly. If your answer is longer than 1-2 sentences,
 use Markdown formatting. Especially for code blocks.
