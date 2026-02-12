@@ -19,13 +19,16 @@ struct DoOutput {
     comment: Option<String>,
 }
 
-pub fn run(query: &str) -> Result<()> {
+pub fn run(query: &str, model: Option<&str>) -> Result<()> {
     let mut spinner = thinking_spinner();
+
+    // Default to haiku for do command
+    let model = model.or(Some("haiku"));
 
     let DoOutput {
         mut bash_command,
         comment,
-    } = run_claude(query)?;
+    } = run_claude(query, model)?;
 
     spinner.success("Done!");
 
@@ -58,8 +61,8 @@ pub fn run(query: &str) -> Result<()> {
     Ok(())
 }
 
-fn run_claude(query: &str) -> Result<DoOutput> {
-    let process_output = build_claude_command(query).output()?;
+fn run_claude(query: &str, model: Option<&str>) -> Result<DoOutput> {
+    let process_output = build_claude_command(query, model).output()?;
     // FIXME: ask claude again if we fail to parse?
     let output_str = String::from_utf8_lossy(&process_output.stdout).to_string();
     let stripped_output = strip_markdown_code_block(output_str);
@@ -85,13 +88,16 @@ fn strip_markdown_code_block(s: String) -> String {
     }
 }
 
-fn build_claude_command(query: &str) -> process::Command {
+fn build_claude_command(query: &str, model: Option<&str>) -> process::Command {
     let output_schema = schema_for!(DoOutput).to_value().to_string();
     let mut cmd = process::Command::new("claude");
     cmd.arg("--print");
     cmd.arg("--no-session-persistence");
     cmd.arg("--tools=Read,Grep,Glob,WebFetch,WebSearch");
     cmd.arg("--allowedTools=Read,Grep,Glob,WebFetch,WebSearch");
+    if let Some(model) = model {
+        cmd.arg(format!("--model={}", model));
+    }
     // FIXME: For some reason the claude CLI just crashes when I provide a schema,
     // for now, I'll just give the schema in the prompt.
     //cmd.arg(format!("--json-schema='{output_schema}'"));

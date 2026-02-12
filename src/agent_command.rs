@@ -93,6 +93,7 @@ pub fn run(
     setup_command: Option<String>,
     worktree_path: PathBuf,
     keep_worktree: bool,
+    model: Option<String>,
 ) -> Result<()> {
     setup_worktree(&feature_name, &worktree_path, setup_command.as_ref())?;
     println!("Created worktree at: {}", worktree_path.display());
@@ -106,7 +107,8 @@ pub fn run(
 
     let script_with_vars = script
         .replace("$WORKTREE_PATH", &worktree_path.display().to_string())
-        .replace("$QUERY", query.as_deref().unwrap_or(""));
+        .replace("$QUERY", query.as_deref().unwrap_or(""))
+        .replace("$MODEL", model.as_deref().unwrap_or(""));
 
     // Execute the shell script
     let err = Command::new("sh").arg("-c").arg(&script_with_vars).exec();

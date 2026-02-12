@@ -24,4 +24,8 @@ cleanup() {
 trap cleanup EXIT
 cd "$WORKTREE_PATH"
 BRANCH_NAME="$(git branch --show-current)"
-claude --permission-mode=acceptEdits "$QUERY"
+if [ -n "$MODEL" ]; then
+    claude --permission-mode=acceptEdits --model="$MODEL" "$QUERY"
+else
+    claude --permission-mode=acceptEdits "$QUERY"
+fi

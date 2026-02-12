@@ -4,9 +4,9 @@ use eyre::Result;
 
 use crate::terminal_utils::{highlight_markdown, thinking_spinner};
 
-pub fn run(query: &str) -> Result<()> {
+pub fn run(query: &str, model: Option<&str>) -> Result<()> {
     let mut spinner = thinking_spinner();
-    let process_output = build_claude_command(query).output()?;
+    let process_output = build_claude_command(query, model).output()?;
     spinner.success("Done!");
     let formatted_response =
         highlight_markdown(&String::from_utf8_lossy(process_output.stdout.as_slice()))?;
@@ -14,12 +14,15 @@ pub fn run(query: &str) -> Result<()> {
     Ok(())
 }
 
-fn build_claude_command(query: &str) -> process::Command {
+fn build_claude_command(query: &str, model: Option<&str>) -> process::Command {
     let mut cmd = process::Command::new("claude");
     cmd.arg("--print");
     cmd.arg("--no-session-persistence");
     cmd.arg("--tools=Read,Grep,Glob,WebFetch,WebSearch");
     cmd.arg("--allowedTools=Read,Grep,Glob,WebFetch,WebSearch");
+    if let Some(model) = model {
+        cmd.arg(format!("--model={}", model));
+    }
     cmd.arg(format!(r#"
 You are tasked with responding to a user query. Answer succinctly. If your answer is longer than 1-2 sentences,
 use Markdown formatting. Especially for code blocks.

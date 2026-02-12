@@ -20,6 +20,9 @@ mod terminal_utils;
     long_about = None
 )]
 struct Args {
+    /// Model to use for Claude (e.g. sonnet, opus, haiku)
+    #[arg(short, long, global = true)]
+    model: Option<String>,
     #[command(subcommand)]
     command: SubCommand,
 }
@@ -99,6 +102,7 @@ fn main() -> Result<()> {
                 setup_command,
                 worktree_path,
                 keep_worktree.unwrap_or(false),
+                args.model,
             )?;
         }
         SubCommand::Do { query } => {
@@ -107,7 +111,7 @@ fn main() -> Result<()> {
             } else {
                 Input::new().with_prompt("Query").interact_text()?
             };
-            do_command::run(&query)?
+            do_command::run(&query, args.model.as_deref())?
         }
         SubCommand::Ask { query } => {
             let query = if let Some(query) = query {
@@ -115,7 +119,7 @@ fn main() -> Result<()> {
             } else {
                 Input::new().with_prompt("Query").interact_text()?
             };
-            ask_command::run(&query)?
+            ask_command::run(&query, args.model.as_deref())?
         }
     }
 
