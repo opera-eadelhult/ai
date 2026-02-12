@@ -2,15 +2,16 @@ use std::process;
 
 use eyre::Result;
 
-use crate::terminal_utils::{highlight_markdown, thinking_spinner};
+use crate::terminal_utils::thinking_spinner;
 
 pub fn run(query: &str, model: Option<&str>) -> Result<()> {
     let mut spinner = thinking_spinner();
     let process_output = build_claude_command(query, model).output()?;
     spinner.success("Done!");
-    let formatted_response =
-        highlight_markdown(&String::from_utf8_lossy(process_output.stdout.as_slice()))?;
-    println!("{formatted_response}");
+    println!(
+        "{}",
+        String::from_utf8_lossy(process_output.stdout.as_slice())
+    );
     Ok(())
 }
 

@@ -10,11 +10,6 @@ pub fn highlight_bash(command: &str) -> Result<String> {
     Ok(hl.highlight("bash", &command)?)
 }
 
-pub fn highlight_markdown(command: &str) -> Result<String> {
-    let mut hl = AnsiHighlighter::new(builtin::catppuccin_mocha());
-    Ok(hl.highlight("markdown", &command)?)
-}
-
 pub fn thinking_spinner() -> Spinner {
     Spinner::new(spinners::Dots, "Thinking ...", Color::Blue)
 }
