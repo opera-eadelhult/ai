@@ -6,7 +6,7 @@ authors = ["Eli Adelhult <eadelhult@opera.com>"]
 
 [dependencies]
 arborium = { version = "2.13.0", features = ["lang-bash"] }
-clap = { version = "4.5.57", features = ["derive"] }
+clap = { version = "4.5.57", features = ["derive", "env"] }
 dialoguer = { version = "0.12.0", features = [] }
 eyre = "0.6.12"
 names = { version = "0.14.0", default-features = false }

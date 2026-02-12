@@ -21,7 +21,7 @@ mod terminal_utils;
 )]
 struct Args {
     /// Model to use for Claude (e.g. sonnet, opus, haiku)
-    #[arg(short, long, global = true)]
+    #[arg(short, long, global = true, env = "AI_MODEL")]
     model: Option<String>,
     #[command(subcommand)]
     command: SubCommand,
@@ -35,10 +35,10 @@ enum SubCommand {
         #[arg(short, long)]
         name: Option<String>,
         /// Command that runs when worktree has been created (e.g. `npm install`)
-        #[arg(short, long)]
+        #[arg(short, long, env = "AI_SETUP_COMMAND")]
         setup_command: Option<String>,
         /// Parent directory where all worktrees are stored. If omitted, a temporary directory will be created
-        #[arg(short, long)]
+        #[arg(short, long, env = "AI_WORKTREES_DIR")]
         worktrees_dir: Option<PathBuf>,
         /// Set to true if you want the worktree to be kept even after the agent process exits
         #[arg(short, long, action = ArgAction::SetTrue)]
