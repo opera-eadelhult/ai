@@ -1,7 +1,7 @@
 use eyre::{Result, eyre};
 use std::process::Command;
-use std::{os::unix::process::CommandExt as _, path::PathBuf};
 use std::{fs, path::Path};
+use std::{os::unix::process::CommandExt as _, path::PathBuf};
 
 const SPAWN_CLAUDE_SCRIPT: &str = include_str!("spawn_claude.sh");
 const SPAWN_CLAUDE_KEEP_SCRIPT: &str = include_str!("spawn_claude_keep.sh");
@@ -27,6 +27,7 @@ fn setup_worktree(
     feature_name: &str,
     worktree_path: &PathBuf,
     setup_command: Option<&String>,
+    open_editor: bool,
 ) -> Result<()> {
     // Capture uncommitted changes from the main directory
     let diff_output = Command::new("git").args(["diff"]).output()?;
@@ -71,6 +72,17 @@ fn setup_worktree(
         copy_dir_recursive(&claude_dir, &target_claude_dir)?;
     }
 
+    // Open editor in background if requested
+    if open_editor {
+        if let Ok(editor) = std::env::var("VISUAL") {
+            Command::new("sh")
+                .arg("-c")
+                .arg(format!("{} . >/dev/null 2>&1 &", editor))
+                .current_dir(&worktree_path)
+                .spawn()?;
+        }
+    }
+
     // Run setup command if provided
     if let Some(setup_cmd) = setup_command {
         let status = Command::new("sh")
@@ -94,8 +106,14 @@ pub fn run(
     worktree_path: PathBuf,
     keep_worktree: bool,
     model: Option<String>,
+    open_editor: bool,
 ) -> Result<()> {
-    setup_worktree(&feature_name, &worktree_path, setup_command.as_ref())?;
+    setup_worktree(
+        &feature_name,
+        &worktree_path,
+        setup_command.as_ref(),
+        open_editor,
+    )?;
     println!("Created worktree at: {}", worktree_path.display());
 
     // Prepare environment variables and script

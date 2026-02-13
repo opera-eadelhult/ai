@@ -43,6 +43,9 @@ enum SubCommand {
         /// Set to true if you want the worktree to be kept even after the agent process exits
         #[arg(short, long, action = ArgAction::SetTrue)]
         keep_worktree: Option<bool>,
+        /// Open $VISUAL in the worktree directory (e.g. "zed --wait")
+        #[arg(short, long, action = ArgAction::SetTrue)]
+        editor: bool,
         query: Option<String>,
     },
     /// Suggest a one-off bash command
@@ -61,6 +64,7 @@ fn main() -> Result<()> {
             setup_command,
             worktrees_dir,
             keep_worktree,
+            editor,
         } => {
             let feature_name = match (name, &query) {
                 (Some(name), _) => name,
@@ -103,6 +107,7 @@ fn main() -> Result<()> {
                 worktree_path,
                 keep_worktree.unwrap_or(false),
                 args.model,
+                editor,
             )?;
         }
         SubCommand::Do { query } => {
